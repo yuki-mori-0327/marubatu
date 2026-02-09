@@ -21,10 +21,13 @@ for (let row = 0; row < 3; row++) {
             if (result !== CONTINUE) {
                 window.location.reload(true); // 決着がついた後にクリックしたらリロード
             }
+
+           if (cells[row][col] === 0) { // 置けるかどうかの判定
             putMark(row, col); // ○か×を置く
             turn = turn * -1;
             check(); // ゲームの状態を確認
-        });
+            }
+          });
     }
 }
 
@@ -52,5 +55,24 @@ function check() {
 
 // 勝敗を判定する処理
 function judge(_cells) {
+  
+  // 調べる必要があるラインをリストアップ
+  const lines = [
+
+    // 横をチェック
+    [_cells[0][0], _cells[0][1], _cells[0][2]],
+      [_cells[1][0], _cells[1][1], _cells[1][2]], // Bのライン
+  [_cells[2][0], _cells[2][1], _cells[2][2]], // Cのライン
+
+  // 縦をチェック
+  [_cells[0][0], _cells[1][0], _cells[2][0]], // Dのライン
+  [_cells[0][1], _cells[1][1], _cells[2][1]], // Eのライン
+  [_cells[0][2], _cells[1][2], _cells[2][2]], // Fのライン
+
+  // 斜めをチェック
+  [_cells[0][0], _cells[1][1], _cells[2][2]], // Gのライン
+  [_cells[0][2], _cells[1][1], _cells[2][0]]  // Hのライン
+];
+
 
 }
