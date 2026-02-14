@@ -1,39 +1,44 @@
-// ゲームの状態
-const CONTINUE = null; // まだ決着がついていない
-const WIN_PLAYER_1 = 1; // 〇の勝ち
-const WIN_PLAYER_2 = -1; // ✕の勝ち
-const DRAW_GAME = 0; // 引き分け
+// ===== ゲームの状態 =====
+const CONTINUE = null;   // まだ決着がついていない
+const WIN_PLAYER_1 = 1;  // ○の勝ち
+const WIN_PLAYER_2 = -1; // ×の勝ち
+const DRAW_GAME = 0;     // 引き分け
 
-const cells = [ // 空なら0、○なら1、×なら-1
+// 空なら0、○なら1、×なら-1
+const cells = [
   [0, 0, 0],
   [0, 0, 0],
   [0, 0, 0]
 ];
 
-let turn = 1; // ○の番なら1、×の番なら-1
-let result = CONTINUE;
+let turn = 1;          // ○の番なら1、×の番なら-1
+let result = CONTINUE; // 現在の勝敗状態
 
-// セルをクリックしたときのイベントを登録
+// ===== セルクリックのイベント登録 =====
 for (let row = 0; row < 3; row++) {
-    for (let col = 0; col < 3; col++) {
-        const cell = document.querySelector(`#cell_${row}_${col}`);
-        cell.addEventListener("click", () => {
-            if (result !== CONTINUE) {
-                window.location.reload(true); // 決着がついた後にクリックしたらリロード
-            }
+  for (let col = 0; col < 3; col++) {
+    const cell = document.querySelector(`#cell_${row}_${col}`);
 
-           if (cells[row][col] === 0) { // 置けるかどうかの判定
-            putMark(row, col); // ○か×を置く
-            turn = turn * -1;
-            check(); // ゲームの状態を確認
-            }
-          });
-    }
+    cell.addEventListener("click", () => {
+      // 決着後にクリックしたらリロード
+      if (result !== CONTINUE) {
+        window.location.reload(true);
+        return;
+      }
+
+      // まだ置いてないマスだけ置ける
+      if (cells[row][col] === 0) {
+        putMark(row, col);   // ○ or × を置く
+        turn = turn * -1;    // 手番交代
+        check();             // ゲームの状態を確認
+      }
+    });
+  }
 }
 
-// ○か×を置く
+// ===== ○か×を置く =====
 function putMark(row, col) {
-      const cell = document.querySelector(`#cell_${row}_${col}`);
+  const cell = document.querySelector(`#cell_${row}_${col}`);
 
   if (turn === 1) {
     cell.textContent = "○";
@@ -46,44 +51,53 @@ function putMark(row, col) {
   }
 }
 
-
-
-// ゲームの状態を確認
+// ===== ゲームの状態を確認 =====
 function check() {
+  result = judge(cells);
 
+  if (result === WIN_PLAYER_1) {
+    alert("○の勝ち！");
+  } else if (result === WIN_PLAYER_2) {
+    alert("×の勝ち！");
+  } else if (result === DRAW_GAME) {
+    alert("引き分け！");
+  }
 }
 
-// 勝敗を判定する処理
+// ===== 勝敗を判定する処理 =====
 function judge(_cells) {
-  
   // 調べる必要があるラインをリストアップ
   const lines = [
-
-    // 横をチェック
+    // 横
     [_cells[0][0], _cells[0][1], _cells[0][2]],
-      [_cells[1][0], _cells[1][1], _cells[1][2]], // Bのライン
-  [_cells[2][0], _cells[2][1], _cells[2][2]], // Cのライン
+    [_cells[1][0], _cells[1][1], _cells[1][2]],
+    [_cells[2][0], _cells[2][1], _cells[2][2]],
 
-  // 縦をチェック
-  [_cells[0][0], _cells[1][0], _cells[2][0]], // Dのライン
-  [_cells[0][1], _cells[1][1], _cells[2][1]], // Eのライン
-  [_cells[0][2], _cells[1][2], _cells[2][2]], // Fのライン
+    // 縦
+    [_cells[0][0], _cells[1][0], _cells[2][0]],
+    [_cells[0][1], _cells[1][1], _cells[2][1]],
+    [_cells[0][2], _cells[1][2], _cells[2][2]],
 
-  // 斜めをチェック
-  [_cells[0][0], _cells[1][1], _cells[2][2]], // Gのライン
-  [_cells[0][2], _cells[1][1], _cells[2][0]]  // Hのライン
-];
-// 勝ち負けチェック
-for (let line of lines) {
-  const sum = line[0] + line[1] + line[2];
+    // 斜め
+    [_cells[0][0], _cells[1][1], _cells[2][2]],
+    [_cells[0][2], _cells[1][1], _cells[2][0]]
+  ];
 
-  if (sum === 3) {
-    return WIN_PLAYER_1;
+  // 勝ち負けチェック
+  for (let line of lines) {
+    const sum = line[0] + line[1] + line[2];
+
+    if (sum === 3) return WIN_PLAYER_1;   // ○○○
+    if (sum === -3) return WIN_PLAYER_2;  // ×××
   }
 
-  if (sum === -3) {
-    return WIN_PLAYER_2;
+  // 継続チェック（0が1つでも残ってたら続行）
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 3; col++) {
+      if (_cells[row][col] === 0) return CONTINUE;
+    }
   }
 
-
+  // 0が残ってない＝全部埋まってるのに勝者なし → 引き分け
+  return DRAW_GAME;
 }
