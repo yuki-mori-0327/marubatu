@@ -54,13 +54,20 @@ function putMark(row, col) {
 // ===== ゲームの状態を確認 =====
 function check() {
   result = judge(cells);
+   const message = document.querySelector("#message");
 
-  if (result === WIN_PLAYER_1) {
-    alert("○の勝ち！");
-  } else if (result === WIN_PLAYER_2) {
-    alert("×の勝ち！");
-  } else if (result === DRAW_GAME) {
-    alert("引き分け！");
+  switch (result) {
+    case WIN_PLAYER_1:
+      message.textContent = " ○の勝ち！";
+      break;
+
+    case WIN_PLAYER_2:
+      message.textContent = " ×の勝ち！";
+      break;
+
+    case DRAW_GAME:
+      message.textContent = " 引き分け！";
+      break;
   }
 }
 
