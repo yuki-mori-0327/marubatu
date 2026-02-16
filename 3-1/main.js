@@ -30,6 +30,8 @@ for (let row = 0; row < 3; row++) {
       if (cells[row][col] === 0) {
         putMark(row, col);   // ○ or × を置く
         turn = turn * -1;    // 手番交代
+        thinkAI(); // AIに考えてもらう
+        turn = turn * -1;
         check();             // ゲームの状態を確認
       }
     });
