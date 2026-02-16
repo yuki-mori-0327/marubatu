@@ -108,3 +108,14 @@ function judge(_cells) {
   // 0が残ってない＝全部埋まってるのに勝者なし → 引き分け
   return DRAW_GAME;
 }
+
+// AIに考えてもらう
+function thinkAI() {
+  const hand = think(cells, -1, 5);
+  if (hand) {
+    const cell = document.querySelector(`#cell_${hand[0]}_${hand[1]}`);
+    cell.textContent = " × ";
+    cell.classList.add("x");
+    cells[hand[0]][hand[1]] = -1;
+  }
+}
