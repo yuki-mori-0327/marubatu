@@ -13,6 +13,15 @@ const cells = [
 
 let turn = 1;          // ○の番なら1、×の番なら-1
 let result = CONTINUE; // 現在の勝敗状態
+let mode = "hard";     // "hard" or "easy"
+
+// ===== モードが切り替わったときの処理（※セルクリックの外に置く）=====
+const modeElements = document.querySelectorAll("input[name='mode']");
+for (let modeElement of modeElements) {
+  modeElement.addEventListener("change", (event) => {
+    mode = event.target.value;
+  });
+}
 
 // ===== セルクリックのイベント登録 =====
 for (let row = 0; row < 3; row++) {
@@ -27,13 +36,20 @@ for (let row = 0; row < 3; row++) {
       }
 
       // まだ置いてないマスだけ置ける
-      if (cells[row][col] === 0) {
-        putMark(row, col);   // ○ or × を置く
-        turn = turn * -1;    // 手番交代
-        thinkAI(); // AIに考えてもらう
-        turn = turn * -1;
-        check();             // ゲームの状態を確認
-      }
+      if (cells[row][col] !== 0) return;
+
+      // プレイヤー（○）が置く
+      putMark(row, col);
+
+      // 置いた直後に勝敗チェック（勝ってたらAIは動かない）
+      check();
+      if (result !== CONTINUE) return;
+
+      // AI（×）が置く
+      thinkAI();
+
+      // AIの後も勝敗チェック
+      check();
     });
   }
 }
@@ -56,19 +72,20 @@ function putMark(row, col) {
 // ===== ゲームの状態を確認 =====
 function check() {
   result = judge(cells);
-   const message = document.querySelector("#message");
+  const message = document.querySelector("#message");
 
   switch (result) {
     case WIN_PLAYER_1:
-      message.textContent = " ○の勝ち！";
+      message.textContent = "○の勝ち！";
       break;
-
     case WIN_PLAYER_2:
-      message.textContent = " ×の勝ち！";
+      message.textContent = "×の勝ち！";
       break;
-
     case DRAW_GAME:
-      message.textContent = " 引き分け！";
+      message.textContent = "引き分け！";
+      break;
+    default:
+      // CONTINUE のときは表示を変えない（必要なら空にしてもOK）
       break;
   }
 }
@@ -95,7 +112,6 @@ function judge(_cells) {
   // 勝ち負けチェック
   for (let line of lines) {
     const sum = line[0] + line[1] + line[2];
-
     if (sum === 3) return WIN_PLAYER_1;   // ○○○
     if (sum === -3) return WIN_PLAYER_2;  // ×××
   }
@@ -111,13 +127,24 @@ function judge(_cells) {
   return DRAW_GAME;
 }
 
-// AIに考えてもらう
+// ===== AIに考えてもらう =====
 function thinkAI() {
-  const hand = think(cells, -1, 5);
-  if (hand) {
-    const cell = document.querySelector(`#cell_${hand[0]}_${hand[1]}`);
-    cell.textContent = " × ";
-    cell.classList.add("x");
-    cells[hand[0]][hand[1]] = -1;
-  }
+  // ここで「思考の深さ=9」「接待モードかどうか」を渡す（本の想定）
+  // mode === "easy" のとき true、それ以外 false
+  const hand = think(cells, -1, 9, mode === "easy");
+
+  if (!hand) return;
+
+  const r = hand[0];
+  const c = hand[1];
+
+  // 念のため空マス確認（thinkが変な手を返しても壊れにくくする）
+  if (cells[r][c] !== 0) return;
+
+  // AI（×）を置く
+  turn = -1;
+  putMark(r, c);
+
+  // 次はプレイヤー（○）
+  turn = 1;
 }
